@@ -1,0 +1,12 @@
+{
+  "files": {
+    "main.css": "/oasis-treature-hunt/static/css/main.9d11ef7a.css",
+    "main.js": "/oasis-treature-hunt/static/js/main.a915bc5f.js",
+    "static/js/253.36d81e7d.chunk.js": "/oasis-treature-hunt/static/js/253.36d81e7d.chunk.js",
+    "index.html": "/oasis-treature-hunt/index.html"
+  },
+  "entrypoints": [
+    "static/css/main.9d11ef7a.css",
+    "static/js/main.a915bc5f.js"
+  ]
+}
