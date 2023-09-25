@@ -226,7 +226,7 @@ const Game=({playerMetadata,updateState}:
 
     return(
     <>
-    <div className="flexTable width-100pct">
+    <div className="flexTable">
         <div className="flexTableItem">
         {
             playerMetadata.creator && playerMetadata.init && playerMetadata.gameIndex===undefined

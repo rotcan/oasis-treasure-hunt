@@ -2,6 +2,7 @@ import type { MetaMask } from '@web3-react/metamask'
 import { Web3ReactHooks } from '@web3-react/core'
 import { useCallback, useEffect, useState } from 'react'
 import { TESTNET_CHAINS, getAddChainParameters } from '../../../utils/chain'
+import { Button } from '@mui/material'
 
 function ChainSelect({
     activeChainId,
@@ -105,15 +106,15 @@ export function ConnectWithSelect({
     
     return (
       <div style={{ display: 'flex', margin:"0em 1em" }}>
-        {/* {!(connector instanceof GnosisSafe) && (
-          <ChainSelect activeChainId={desiredChainId} switchChain={switchChain} chainIds={chainIds} />
+        {/* { desiredChainId && chainIds && (
+          <ChainSelect activeChainId={desiredChainId} switchChain={switchChain} chainIds={chainIds.map(m=>m!)} />
         )} */}
         <div style={{ marginBottom: '0.1rem' }} />
         {isActive ? (
           error ? (
             <button onClick={() => switchChain(desiredChainId)}>Try again?</button>
           ) : (
-            <button
+            <Button className='walletButton'
               onClick={() => {
                 if (connector?.deactivate) {
                   void connector.deactivate()
@@ -124,10 +125,10 @@ export function ConnectWithSelect({
               }}
             >
               Disconnect
-            </button>
+            </Button>
           )
         ) : (
-          <button
+          <Button
             onClick={() =>
             //   connector instanceof GnosisSafe
             //     ? void connector
@@ -140,7 +141,7 @@ export function ConnectWithSelect({
             disabled={isActivating || !desiredChainId}
           > 
             {error ? 'Try again?' : 'Connect'}
-          </button>
+          </Button>
         )}
       </div>
     )
