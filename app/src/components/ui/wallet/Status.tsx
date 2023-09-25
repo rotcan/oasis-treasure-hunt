@@ -10,7 +10,7 @@ export function Status({
   error?: Error
 }) {
   return (
-    <span>
+    <span className='walletStatus'>
       {error ? (
         <>
           🔴 {error.name ?? 'Error'}

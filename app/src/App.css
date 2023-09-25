@@ -133,3 +133,14 @@
 .textLeft{
   text-align: left;
 }
+
+.walletStatus{line-height: 25px;}
+
+button.walletButton{padding: 0 10px;
+  color: black;
+  background-color: #5c99de;
+}
+
+.lineHeight35{
+  line-height: 35px;
+}

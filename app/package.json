@@ -1,7 +1,7 @@
 {
   "name": "treaure-hunt",
   "version": "0.1.0",
-  "homepage": "https://rotcan.github.io/oasis-treature-hunt",
+  "homepage": "https://rotcan.github.io/oasis-treasure-hunt",
   "private": true,
   "dependencies": {
     "@babel/runtime": "^7.22.15",

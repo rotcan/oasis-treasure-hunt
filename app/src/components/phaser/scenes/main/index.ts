@@ -316,12 +316,12 @@ export class MainPGame extends Phaser.Scene
         if(this.p1){
             const p1x=this.p1.x;
             const p1y=this.p1.y;
-            this.p1.body.reset(p1x+oldSx,p1y);
+            this.p1.body.reset(p1x+moveX,p1y);
         }
         if(this.p2){
             const p2x=this.p2.x;
             const p2y=this.p2.y;
-            this.p2.body.reset(p2x+oldSx,p2y);
+            this.p2.body.reset(p2x+moveX,p2y);
         }
     }
 

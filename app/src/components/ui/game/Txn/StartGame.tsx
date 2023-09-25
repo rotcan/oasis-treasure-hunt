@@ -92,7 +92,7 @@ const StartGame = () => {
 
   return (
     <>
-      <div className="flexTableItem">
+      <div className="flexTableItem lineHeight35">
         <div className="flexTable">
           <div className="flexTableItem">Bid(Gwei)</div>
           <input
