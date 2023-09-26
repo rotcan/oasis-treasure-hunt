@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
-import { Player } from "../../../utils/common";
-import Menu from "./Menu";
-import Game from "./Game";
 import { useWeb3React } from "@web3-react/core";
-import { EventBus, GameEvents } from "../../phaser/scenes/main";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { Player } from "../../../utils/common";
+import Game from "./Game";
 import Loading from "./Loading";
+import Menu from "./Menu";
 
 export interface PlayerMetadata {
   currentPlayer: Player ;

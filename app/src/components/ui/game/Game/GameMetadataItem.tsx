@@ -1,25 +1,30 @@
+import { formatEther } from "@ethersproject/units";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import GamesIcon from "@mui/icons-material/Games";
+import WatchIcon from "@mui/icons-material/Watch";
+import { useWeb3React } from "@web3-react/core";
 import {
   ContractMetadata,
-  GameMetadata,
   UnassignedAddress,
   getBidText,
   getGameStatus,
   getMoveCounterText,
   getNextMoveTime,
   getNumberValue,
+  getPlayer2BidAmount,
   getStatus,
   getTimeLabel,
+  getWinningAmount,
+  isGameSetup,
+  isPlayer2Join
 } from "../../../../contract/data";
 import { GameState, Player } from "../../../../utils/common";
-import { useCountdown } from "../../../../utils/countdown";
+import PlayerJoin from "../Txn/PlayerJoin";
+import PlayerMove from "../Txn/PlayerMove";
+import Copy from "./Copy";
 import CountdownTimer from "./CountdownTimer";
 import MoveItems from "./MoveItems/Index";
-import WatchIcon from "@mui/icons-material/Watch";
-import GamesIcon from "@mui/icons-material/Games";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
-import Copy from "./Copy";
-import { formatEther } from "@ethersproject/units";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
 const GameMetadataItem = ({
   data,
@@ -37,15 +42,31 @@ const GameMetadataItem = ({
   const time = getNextMoveTime({ metadata: gameMetadata });
   const status = getStatus({ metadata: gameMetadata });
   const moveCounterText = getMoveCounterText({ metadata: gameMetadata });
+  const {account}=useWeb3React();
 
   const countdownJSX = () => {
     if (status === GameState.Init) return CountdownTimer({ targetDate: time });
     return <></>;
   };
 
+  const isCreator=():boolean=>{
+    return gameMetadata.creator===account;
+  }
+
+  const player2ActionJsx=()=>{
+        
+    if(!gameMetadata || !gameMetadata.game_index || getStatus({metadata:gameMetadata})===GameState.End)
+        return <></>
+    if(!isGameSetup({metadata: gameMetadata}))
+        return <></>
+    if(isPlayer2Join({metadata: gameMetadata}) )
+        return (<PlayerJoin gameIndex={gameMetadata.game_index.toString()} amount={getPlayer2BidAmount({deposit: depositMetadata,metadata: gameMetadata})}/>   )
+    return (<PlayerMove gameIndex={gameMetadata.game_index.toString()}/>   )
+}
+
   const gameUrl =
     window.location.origin +
-    "/" +
+    "" +
     window.PUBLIC_URL +
     `?gameId=${gameMetadata.game_index.toString()}`;
   const jsx = () => {
@@ -53,8 +74,9 @@ const GameMetadataItem = ({
       return <>Game has not been setup</>;
     return (
       <>
-        <div className="flexTable width-90pct">
-          {getStatus({ metadata: gameMetadata }) === GameState.Setup && (
+        <div className={(isCreator() ? `flexTable minWidth600`: `flexTable minWidth400`)}>
+          {getStatus({ metadata: gameMetadata }) === GameState.Setup
+          && isCreator() && (
             <>
               <div className="flexTableItem verticalAlignMiddle">
                 <span>{statusText}</span>
@@ -80,9 +102,13 @@ const GameMetadataItem = ({
             </>
           )}
           {getStatus({ metadata: gameMetadata }) === GameState.Init && (
-            <div className="flexTableItem">
+            <div className="flexTableItem flexTable">
+              <div className="flexTableItem">
               <WatchIcon />
+              </div>
+              <div className="flexTableItem">
               {countdownJSX()}
+              </div>
             </div>
           )}
           <div className="flexTableItem">
@@ -93,6 +119,7 @@ const GameMetadataItem = ({
             {moveCounterText}
           </div>
           <MoveItems metadatas={moveMetadatas} />
+          {moveMetadatas.length===0 && (
           <div className="flexTableItem">
             <WatchIcon
               className="verticalAlignMiddle"
@@ -100,14 +127,27 @@ const GameMetadataItem = ({
             />
             {getNumberValue(gameMetadata.move_time) / 60} mins
           </div>
-          <div className="flexTableItem">
+          )}
+          {depositMetadata.creator_deposit.toString()!=="0" && (
+          <div className="flexTableItem" title={`Bid of ${formatEther(depositMetadata.creator_deposit)} required. Winning amount=${formatEther(getWinningAmount({metadata: gameMetadata,deposit: depositMetadata}))}`}>
             <AttachMoneyIcon
               className="verticalAlignMiddle"
-              titleAccess="Bid Amount"
             />
             {formatEther(depositMetadata.creator_deposit)}:
             {getBidText({ metadata: gameMetadata })}
           </div>
+          )}
+          {
+            //Show all moves
+            gameMetadata.game_index.toString() && !isCreator() && (
+                //Show join or move depending one state
+                
+                //Options to make move and submit them
+                <div className="flexTableItem">
+                {player2ActionJsx()}
+                </div>
+            )
+        }
         </div>
       </>
     );

@@ -405,6 +405,36 @@ result: MoveResult,oldGrid?: GridColors,reset:boolean})=>{
     return gridColors;
 }
 
+export const getPlayer2BidAmount=({metadata,deposit}:{metadata: GameMetadata,deposit: DepositMetadata}):string | undefined=>{
+    const bidType=getBidType({metadata});
+    const creatorDeposit=deposit.creator_deposit;
+    if(bidType===BidType.Half){
+        return (creatorDeposit*BigInt("5")/BigInt("10")).toString();
+    }
+    if(bidType===BidType.Full){
+        return creatorDeposit.toString();
+    }
+    return undefined
+}
+
+export const getWinningAmount=({metadata,deposit}:{metadata: GameMetadata,deposit: DepositMetadata}):bigint=>{
+    const bidType=getBidType({metadata});
+    const creatorDeposit=deposit.creator_deposit;
+    const feeNum=BigInt("200");
+    const feeDenominator=BigInt("10000");
+    if(bidType===BidType.Half){
+        const total=creatorDeposit*BigInt("15")/BigInt("10");
+        const winningAmmount=total-(total*feeNum/feeDenominator);
+        return winningAmmount;
+    }
+    if(bidType===BidType.Full){
+        const total=creatorDeposit*BigInt("2");
+        const winningAmmount=total-(total*feeNum/feeDenominator);
+        return winningAmmount;
+    }
+    return BigInt("0")
+}
+
 const getPointDistance=({p1,p2}:{p1: MazePoint,p2:MazePoint})=>{
     return (p1.x-p2.x)*(p1.x-p2.x)+(p1.y-p2.y)*(p1.y-p2.y);
 }
