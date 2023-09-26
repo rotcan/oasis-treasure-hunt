@@ -3,7 +3,7 @@ import { getJoinGameEncodedData } from "../../../../contract/txn";
 import { Button } from "@mui/material";
 import useLoading from "../useLoading";
 
-const PlayerJoin=({gameIndex}:{gameIndex: string})=>{
+const PlayerJoin=({gameIndex, amount}:{gameIndex: string,amount: string | undefined})=>{
 
     const address=process.env.REACT_APP_CONTRACT_ADDRESS!;
     const { account,provider } = useWeb3React();
@@ -21,7 +21,7 @@ const PlayerJoin=({gameIndex}:{gameIndex: string})=>{
             setLoading(true);
             try{
                 const tx=await provider.getSigner().sendTransaction ({from: account,
-                data:encData,to: address!});
+                data:encData,to: address!,value: amount});
                 const res=await tx.wait();
                 
                 console.log("tx",tx,res.logs);

@@ -1,21 +1,19 @@
-import { Button, IconButton } from "@mui/material";
+import ArrowCircleLeftIcon from '@mui/icons-material/ArrowCircleLeft';
+import { IconButton } from "@mui/material";
 import { useWeb3React } from "@web3-react/core";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
-import { ContractEvents, GameMetadata, InitializeGameEventMetadata, JoinGameEventMetadata, MoveMetadata, PlayerMoveEndEventMetadata, PlayerMoveEventMetadata, UnassignedAddress, addInitGameEventListener, addJoinGameEventListener, addPlayerMoveEventEventListener, addPlayerMoveEventListener, addToStorage, calculateGridSquares, getMoveResult, getNumberValue, getPlayer2Pos, getPlayerType, getStatus, getStorageKey, isForfeitVisible, isGameSetup, isPlayer2Join } from "../../../contract/data";
+import { ContractEvents, InitializeGameEventMetadata, JoinGameEventMetadata, MoveMetadata, PlayerMoveEndEventMetadata, PlayerMoveEventMetadata, addInitGameEventListener, addJoinGameEventListener, addPlayerMoveEventEventListener, addPlayerMoveEventListener, addToStorage, calculateGridSquares, getMoveResult, getNumberValue, getPlayer2Pos, getPlayerType, getStatus, getStorageKey, isForfeitVisible, isGameSetup } from "../../../contract/data";
 import useMazeData from "../../../contract/useMazeData";
-import { BidType, GameState, Player, getDateInNumber } from "../../../utils/common";
+import useSecretPosition from "../../../contract/useSecretPosition";
+import { GameState, Player, getDateInNumber } from "../../../utils/common";
 import '../../phaser/index';
 import { EventBus, GameEvents, JoinGameArgs, SetPositionArgs } from "../../phaser/scenes/main";
 import GameMetadataItem from "./Game/GameMetadataItem";
+import Rules from "./Game/Rules";
 import { PlayerMetadata, defaultPlayerMetadata } from "./Main";
-import PlayerJoin from "./Txn/PlayerJoin";
-import PlayerMove from "./Txn/PlayerMove";
-import StartGame from "./Txn/StartGame";
-import BidDetails, { BidArgs } from "./Game/BidDetails";
-import useSecretPosition from "../../../contract/useSecretPosition";
 import EndGameTxn from "./Txn/EndGameTxn";
 import ForfeitGameTxn from "./Txn/ForfeitGameTxn";
-import ArrowCircleLeftIcon from '@mui/icons-material/ArrowCircleLeft';
+import StartGame from "./Txn/StartGame";
 
 
 const Game=({playerMetadata,updateState}:
@@ -98,16 +96,7 @@ const Game=({playerMetadata,updateState}:
         }))
     }
 
-    const player2ActionJsx=()=>{
-        
-        if(!metadata || !playerMetadata.gameIndex || getStatus({metadata:metadata.gameMetadata})===GameState.End)
-            return <></>
-        if(!isGameSetup({metadata: metadata.gameMetadata}))
-            return <></>
-        if(isPlayer2Join({metadata: metadata.gameMetadata}) )
-            return (<PlayerJoin gameIndex={playerMetadata.gameIndex}/>   )
-        return (<PlayerMove gameIndex={playerMetadata.gameIndex}/>   )
-    }
+   
 
 
     const updateGrid=({movesMetadata}:{movesMetadata: MoveMetadata[]})=>{
@@ -171,8 +160,9 @@ const Game=({playerMetadata,updateState}:
 
     useMemo(()=>{
         if(metadata){
+            const isCreator=metadata.gameMetadata.creator===account;
             const currentPlayerMetadata=playerMetadata.init ? playerMetadata :
-            {creator: metadata.gameMetadata.creator===account,
+            {creator: isCreator,
             currentPlayer: metadata.gameMetadata.creator===account? Player.Player1 : Player.Player2,
             gameIndex: playerMetadata.gameIndex,
             init: true
@@ -182,17 +172,18 @@ const Game=({playerMetadata,updateState}:
             window.p2GridPos={...getPlayer2Pos({metadata})};
             console.log("Update grid ",metadata.gameMetadata.last_move_timestamp,window.p2GridPos);
             
-            EventBus.emit(GameEvents.Join, {creator:currentPlayerMetadata.creator} as JoinGameArgs);
+            EventBus.emit(GameEvents.Join, {creator:isCreator} as JoinGameArgs);
             EventBus.emit(GameEvents.SetPosition,{player: Player.Player2 ,
                 position:{x: window.p2GridPos.x,y:window.p2GridPos.y}} as SetPositionArgs);
             EventBus.emit(GameEvents.ShowPlayer,Player.Player2);
             
-            if(playerMetadata.creator || !(getStatus({metadata:metadata.gameMetadata})===GameState.Init)){
+            if(isCreator || !(getStatus({metadata:metadata.gameMetadata})===GameState.Init)){
                 console.log("Make it readonly");
                 EventBus.emit(GameEvents.ReadOnly);
             }
             //Hide p1 item for p2 
-            //EventBus.emit(GameEvents.HideP1);
+            if(!isCreator && getStatus({metadata: metadata.gameMetadata})!==GameState.End)
+                EventBus.emit(GameEvents.HideP1);
             console.log("currentPlayerMetadata",currentPlayerMetadata);
             updateGrid({movesMetadata: metadata.moveMetadatas});
 
@@ -226,47 +217,39 @@ const Game=({playerMetadata,updateState}:
 
     return(
     <>
-    <div className="flexTable">
-        <div className="flexTableItem">
-        {
-            playerMetadata.creator && playerMetadata.init && playerMetadata.gameIndex===undefined
-             && (<>
-             <StartGame /></>)
-        }
-        {
-            playerMetadata.init && metadata && (
-                <GameMetadataItem data={metadata} player={getPlayerType({playerMetadata})}/>
-            )
-        }
-        {
-            //Show all moves
-            playerMetadata.gameIndex && metadata && metadata.gameMetadata.creator!==account && (
-                //Show join or move depending one state
-                
-                //Options to make move and submit them
-                player2ActionJsx()
-            )
-        }
-        {
-            playerMetadata.gameIndex && metadata && getStatus({metadata: metadata.gameMetadata})===GameState.End
-            && (<label>{metadata.gameMetadata.winner} is the winner!</label>)
-        }
-       
-        </div>
-        <div className="flexTableItem">
-        {
-            metadata && playerMetadata.gameIndex && isGameSetup({metadata: metadata?.gameMetadata}) 
-            && getStatus({metadata: metadata.gameMetadata})===GameState.Init 
-            && (<EndGameTxn gameIndex={playerMetadata.gameIndex}/>)
-        }
-        {
-            playerMetadata.gameIndex && isForfeitVisible({metadata: metadata?.gameMetadata,
-                currentAccount: account}) && (<ForfeitGameTxn gameIndex={playerMetadata.gameIndex}/>)
-        }
-        {
-            playerMetadata.init && (<IconButton onClick={()=>{backClick();}}><ArrowCircleLeftIcon /></IconButton>)
-        }
-        </div>
+        <div className="flexTable">
+            <div className="flexTableItem">
+            {
+                playerMetadata.creator && playerMetadata.init && playerMetadata.gameIndex===undefined
+                && (<>
+                <StartGame /></>)
+            }
+            {
+                playerMetadata.init && metadata && (
+                    <GameMetadataItem data={metadata} player={getPlayerType({playerMetadata})}/>
+                )
+            }
+            {
+                playerMetadata.gameIndex && metadata && getStatus({metadata: metadata.gameMetadata})===GameState.End
+                && (<label>{metadata.gameMetadata.winner} is the winner!</label>)
+            }
+        
+            </div>
+            <div className="flexTableItem minWidth200">
+            {
+                metadata && playerMetadata.gameIndex && isGameSetup({metadata: metadata?.gameMetadata}) 
+                && getStatus({metadata: metadata.gameMetadata})===GameState.Init 
+                && (<EndGameTxn gameIndex={playerMetadata.gameIndex}/>)
+            }
+            {
+                playerMetadata.gameIndex && isForfeitVisible({metadata: metadata?.gameMetadata,
+                    currentAccount: account}) && (<ForfeitGameTxn gameIndex={playerMetadata.gameIndex}/>)
+            }
+            <Rules />
+            {
+                playerMetadata.init && (<IconButton onClick={()=>{backClick();}}><ArrowCircleLeftIcon /></IconButton>)
+            }
+            </div>
         </div>
         <div id="game">
         
