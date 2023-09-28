@@ -208,7 +208,7 @@ contract Maze is Ownable{
             _processEndGame(game_index,_gameMetadatas[game_index].player2);
             return ;
         }
-        if(current_moves>allowed_moves){
+        if(current_moves>=allowed_moves){
             _processEndGame(game_index,_gameMetadatas[game_index].creator);
             return ;
         }
