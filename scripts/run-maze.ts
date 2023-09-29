@@ -1,5 +1,4 @@
-// Usage: pnpm hardhat run --network <network> scripts/run-vigil.ts
-//PRIVATE_KEY="0x..." pnpm hardhat run scripts/run-vigil.ts --network sapphire_testnet
+//PRIVATE_KEY="0x..." pnpm hardhat run scripts/run-maze.ts --network sapphire_testnet
 import { ethers } from 'hardhat';
 require('dotenv').config();
 
